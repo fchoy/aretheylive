@@ -149,28 +149,55 @@ function App() {
   const [streamerChannelInput, setStreamerChannelInput] = useState('');
 
   //add new row
-  const createNewStreamer = (name) => {
+  const createNewStreamer = (name, streamerChannelID) => {
     //fetch from youtube API (figure this out)
+    /*let streamerText = getData(streamerChannelID); //get the promise and use the string returned*/
 
-    //create a streamer object with random id, the name of streamer entered, streamer status, and link to streamer's stream
-    let newstreamer = {id : Math.random(), name : name, streamStatus : "Unknown", link: "https://youtube.com/"};
+    //check if the string contains an image that displays when a user is live. 
+    /*streamerText.then((html) => {
+      if(html.includes("hqdefault_live.jpg")){
+      //create a streamer object with random id, the name of streamer entered, streamer status, and link to streamer's stream
+      let newstreamer = {id : Math.random(), name : name, streamStatus : "Unknown", link: "https://youtube.com/".concat(streamerChannelID, "/live")};
 
-    //increment streamer count by 1
-    setStreamerCount((prevCount) => prevCount + 1);
+      //increment streamer count by 1
+      setStreamerCount((prevCount) => prevCount + 1);
 
-    //add to list of streamers
-    setStreamerList([...streamerList, newstreamer]);
+      //add to list of streamers
+      setStreamerList([...streamerList, newstreamer]);
 
-    //reset nameInput
-    setNameInput('');
+      //reset nameInput
+      setNameInput('');
+    }
+    else {
+      throw new Error("Something went wrong!");
+    }
+    }).catch((err) => {
+      console.log(err);
+      return false;
+    });*/ 
+
+      let newstreamer = {id : Math.random(), name : name, streamStatus : "Unknown", link: "https://youtube.com/".concat(streamerChannelID, "/live")};
+
+      //increment streamer count by 1
+      setStreamerCount((prevCount) => prevCount + 1);
+
+      //add to list of streamers
+      setStreamerList([...streamerList, newstreamer]);
+
+      //reset nameInput
+      setNameInput('');
+
+      //reset streamerChannelInput
+      setStreamerChannelInput('');
+
   };
 
   //async function to fetch youtube data
-  async function getData(){
+  async function getData(streamerChannelID){
     try{
-      const userData = await fetch('https://jsonplaceholder.typicode.com/todos/1'); //wait for function to fetch from youtube api
-      const info = await userData.json(); //await the info to be returned in json
-      console.log(info.id); //log out json object as string
+      const userData = await fetch('https://www.youtube.com/' + streamerChannelID); //wait for function to fetch from youtube api
+      const info = await userData.text(); //await the info to be returned as a string
+      return info;
     }
     catch{
       console.log("Something went wrong!");
@@ -179,7 +206,7 @@ function App() {
 
   //delete row by using the random id assigned to each streamer row
   const deleteRow = (id) => {
-    //filter out streamer list using array.filter(), adding each streamer that doesn't equal the id of the want we want to delete
+    //filter out streamer list using array.filter(), adding each streamer to the new array that doesn't equal the id of the streamer row we want to delete
     const newStreamerList = streamerList.filter((streamer) => streamer.id !== id);
 
     setStreamerList(newStreamerList);
@@ -196,10 +223,10 @@ function App() {
         </InputDiv>
         <AddStreamerButton onClick={() => 
           {
-            if(nameInput.length > 0) 
-              {createNewStreamer(nameInput)} 
+            if(nameInput.length > 0 && streamerChannelInput.length > 0) 
+              {createNewStreamer(nameInput, streamerChannelInput)}             
             else {
-              alert("Please input a streamer name.")
+              alert("Please input the streamer's name and their YouTube channel ID.")
               return false;
             }
           }}>
