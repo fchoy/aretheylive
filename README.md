@@ -1,5 +1,5 @@
-Web application that allows users to track the streaming status of their favorite YouTube live streamers.
+Web application that allows users to create a list of Youtubers to keep track of their current live streaming statuses. 
 
-Updates the list of streamers and their stream status every 15 minutes. (Currently WIP)
+The application fetches live streaming information of a Youtube Channel using the Youtube Data API. 
 
 Developed using Reactjs, and Styled Components.
