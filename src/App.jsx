@@ -197,7 +197,7 @@ function App() {
   const inputRef = useRef(null); //used to reference the api key input to get its value
 
   /* Adds new row to list */
-  const createNewStreamer = async (name, streamerChannelID, apiKey) => {
+  async function createNewStreamer(name, streamerChannelID, apiKey){
 
     //get channel ID of streamer
     const channelId = await getChannelID(streamerChannelID, apiKey)
@@ -257,7 +257,7 @@ function App() {
   };
 
   /* Get YouTube channel's official Channel ID */
-  const getChannelID = async (streamerChannelID, apiKey) => {
+  async function getChannelID(streamerChannelID, apiKey) {
 
     //we are searching the youtube API w/ inputs of type="channel", fields="items%2Fsnippet%2FchannelId", q=${streamerChannelID}, key=${apiKey}, and maxResults="1" that returns a JSON object that contains the requested youtube channel ID
     let response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&fields=items%2Fsnippet%2FchannelId&q=${streamerChannelID}&key=${apiKey}&maxResults=1`); 
@@ -272,7 +272,7 @@ function App() {
     return jsonObject.items[0].snippet.channelId;
   }
 
-  /* Get YouTube channel's Profile Image */
+  /* Get YouTube channel's Profile Image (WIP can't GET from API for some reason) */
   async function getChannelImage(channelId, apiKey){
     //fetch img url of channel
     let channelImage = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=snippet&id+${channelId}&fields=items%2Fsnippet%2Fthumbnails&key=${apiKey}`); 
