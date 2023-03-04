@@ -127,9 +127,13 @@ const StreamerRow = styled.div`
 
 const StreamerImgDiv = styled.div`
   width : 15%;
+  display : flex;
+  justify-content: center;
 `;
 
 const StreamerImg = styled.img`
+  width: fit-content;
+  height : 100%;
 `;
 
 const StreamerName = styled.span`
@@ -147,6 +151,7 @@ const StreamerStatus = styled.a`
   justify-content: center;
   align-items: center;
   color : black;
+  text-underline-offset: 2px;
 `;
 
 const ButtonDiv = styled.div`
@@ -191,86 +196,68 @@ function App() {
 
   const inputRef = useRef(null); //used to reference the api key input to get its value
 
-  //adds a new row
+  /* Adds new row to list */
   const createNewStreamer = async (name, streamerChannelID, apiKey) => {
 
-    //if we enter the channel ID starting with '@', then the newStreamer's link attribute start with "https://youtube.com/"
-      if(String(streamerChannelID).indexOf(0) === '@'){
-        //access streaming data that we get from fetch request, if json.pageInfo.totalResults === 1, then they are currently live
-        getData(streamerChannelID, apiKey).then(
-          (json) => {
-            
-            console.log(json); 
+    //get channel ID of streamer
+    const channelId = await getChannelID(streamerChannelID, apiKey)
+    .then((id) => {
+      return id;
+    }).catch(() => {
+      alert(`Could not fetch channel ID from Youtube API. Please make sure that you typed in a valid YouTube Channel ID.`);
+    });
 
-            let newStreamer;
-            //create new streamer object that contains information to display based on stream status
-            if(json.pageInfo.totalResults === 1){
-              newStreamer = {id : Math.random(), name : name, streamStatus : "Currently Streaming", link: "https://youtube.com/".concat(streamerChannelID, "/live")};
-            }
-            else if(json.pageInfo.totalResults === 0){
-              newStreamer = {id : Math.random(), name : name, streamStatus : "Not Currently Streaming", link: "https://youtube.com/".concat(streamerChannelID, "/live")};
-            }
-            else{
-              throw new Error("Could not find any streaming information for this channel");
-            }
+    //next, fetch JSON data about Youtube Channel's live stream status and save into variable
+    const streamStatus = await getData(channelId, apiKey).then((json) => {
+      return json.pageInfo.totalResults; //return json's pageInfo's totalResults attribute (either 0 or 1)
+    }).catch(() => {
+      alert(`Could not fetch data from Youtube API. Please try again.`)
+    });
 
-            //increment streamer count by 1
-            setStreamerCount((prevCount) => prevCount + 1);
+    //third, fetch channel's youtube profile picture 
+    const imageBlob = await getChannelImage(channelId, apiKey).then((blob) => {
+      return blob; //returns local URL of image fetched from Youtube API
+    });
 
-            //add to list of streamers
-            setStreamerList([...streamerList, newStreamer]);
+    //fourth, create a streamer object depending on if the channel ID starts with '@' or not.
+    let newStreamer; 
 
-            //reset nameInput
-            setNameInput('');
-
-            //reset streamerChannelInput
-            setStreamerChannelInput('');
-          }
-        ).catch((err) => {
-          alert(err);
-        });
+    //if channel ID starts with @
+    if(String(streamerChannelID).indexOf('@') === 0){
+      if(streamStatus === 1){ //if currently streaming
+        newStreamer = {id : Math.random(), name : name, streamStatus : "Currently Streaming", link: "https://youtube.com/".concat(streamerChannelID, "/live"), imgLink: imageBlob};
       }
+      else{ //if not currently streaming
+        newStreamer = {id : Math.random(), name : name, streamStatus : "Not Currently Streaming", link: "https://youtube.com/".concat(streamerChannelID, "/live"), imgLink: imageBlob};
+      }
+    }
 
-      //if channel id does not begin with '@', then the newStreamer's link attribute start with "https://youtube.com/channel/"
+    //else if channel ID doesn't start w/ '@'
+    else{
+      if(streamStatus === 1){
+        newStreamer = {id : Math.random(), name : name, streamStatus : "Currently Streaming", link: "https://youtube.com/channel/".concat(streamerChannelID, "/live"), imgLink: imageBlob};
+      }    
       else{
-        //access streaming data that we get from fetch request, if json.pageInfo.totalResults === 1, then they are currently live
-        getData(streamerChannelID, apiKey).then(
-          (json) => {
-            
-            console.log(json); 
-
-            let newStreamer;
-            //create new streamer object that contains information to display based on stream status
-            if(json.pageInfo.totalResults === 1){
-              newStreamer = {id : Math.random(), name : name, streamStatus : "Currently Streaming", link: "https://youtube.com/channel/".concat(streamerChannelID, "/live")};
-            }
-            else if(json.pageInfo.totalResults === 0){
-              newStreamer = {id : Math.random(), name : name, streamStatus : "Not Currently Streaming", link: "https://youtube.com/channel/".concat(streamerChannelID, "/live")};
-            }
-            else{
-              throw new Error("Could not find any streaming information for this channel");
-            }
-
-            //increment streamer count by 1
-            setStreamerCount((prevCount) => prevCount + 1);
-
-            //add to list of streamers
-            setStreamerList([...streamerList, newStreamer]);
-
-            //reset nameInput
-            setNameInput('');
-
-            //reset streamerChannelInput
-            setStreamerChannelInput('');
-          }
-        ).catch((err) => {
-          alert(err);
-        });
+        newStreamer = {id : Math.random(), name : name, streamStatus : "Not Currently Streaming", link: "https://youtube.com/channel/".concat(streamerChannelID, "/live"), imgLink: imageBlob};
       }
+    }
+
+    /*lastly, update the state of the component*/
+    //increment streamer count by 1
+    setStreamerCount((prevCount) => prevCount + 1);
+
+    //add to list of streamers
+    setStreamerList([...streamerList, newStreamer]);
+    
+    //reset nameInput
+    setNameInput('');
+    
+    //reset streamerChannelInput
+    setStreamerChannelInput('');
   };
 
-  //function to get youtube channel ID to use in getData()
-  async function getChannelID(streamerChannelID, apiKey){
+  /* Get YouTube channel's official Channel ID */
+  const getChannelID = async (streamerChannelID, apiKey) => {
 
     //we are searching the youtube API w/ inputs of type="channel", fields="items%2Fsnippet%2FchannelId", q=${streamerChannelID}, key=${apiKey}, and maxResults="1" that returns a JSON object that contains the requested youtube channel ID
     let response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=channel&fields=items%2Fsnippet%2FchannelId&q=${streamerChannelID}&key=${apiKey}&maxResults=1`); 
@@ -285,19 +272,28 @@ function App() {
     return jsonObject.items[0].snippet.channelId;
   }
 
-  //async function to fetch youtube channel's livestreaming status
-  async function getData(streamerChannelID, apiKey){
+  /* Get YouTube channel's Profile Image */
+  async function getChannelImage(channelId, apiKey){
+    //fetch img url of channel
+    let channelImage = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=snippet&id+${channelId}&fields=items%2Fsnippet%2Fthumbnails&key=${apiKey}`); 
+
+    //convert to binary large object
+    const imageBlob = await channelImage.blob(); 
+
+    //return imageBlob as promise
+    return imageBlob; 
+  }
+
+  /* Get YouTube channel's livestreaming status */
+  async function getData(channelID, apiKey){
     try{
-      //return the channel ID as a string and stores into variable
-      let channelID = await getChannelID(streamerChannelID, apiKey).then((string) => {return string}); 
-
       //search the youtube API for videos that are currently live (Livestreams) based on channel ID
-      const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelID}&eventType=live&type=video&key=${apiKey}`); 
+      const response = await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=${channelID}&type=video&eventType=live&key=${apiKey}`);
 
-      //convert data into json
+      //convert data into JS object
       const json = await response.json() 
 
-      //return promise w/ json data
+      //return promise w/ js object
       return json; 
     }
     catch{
@@ -305,7 +301,8 @@ function App() {
     }
   }
 
-  //delete row by using the random id assigned to each streamer row
+
+  /* Delete Row */
   const deleteRow = (id) => {
     //filter out streamer list using array.filter(), adding each streamer to the new array that doesn't equal the id of the streamer row we want to delete
     const newStreamerList = streamerList.filter((streamer) => streamer.id !== id);
@@ -370,7 +367,7 @@ function App() {
             return(
               <StreamerRow key={item.id}>
                 <StreamerImgDiv>
-                  <StreamerImg/>
+                  <StreamerImg src={URL.createObjectURL(item.imgLink)}/>
                 </StreamerImgDiv>
                 <StreamerName>{item.name}</StreamerName>
                 <StreamerStatus href={item.link} target="_blank">{item.streamStatus}</StreamerStatus>         
