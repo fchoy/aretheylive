@@ -127,6 +127,7 @@ const StreamerRow = styled.div`
 
 const StreamerImgDiv = styled.div`
   width : 15%;
+  height : 90%;
   display : flex;
   justify-content: center;
 `;
@@ -134,6 +135,7 @@ const StreamerImgDiv = styled.div`
 const StreamerImg = styled.img`
   width: fit-content;
   height : 100%;
+  margin : auto 0;
 `;
 
 const StreamerName = styled.span`
@@ -215,8 +217,11 @@ function App() {
     });
 
     //third, fetch channel's youtube profile picture 
-    const imageBlob = await getChannelImage(channelId, apiKey).then((blob) => {
-      return blob; //returns local URL of image fetched from Youtube API
+    const channelImageLink = await getChannelImage(channelId, apiKey).then((json) => {
+      //access json object to get the "default" thumbnail (88x88 px)
+      let imageURL = String(json.items[0].snippet.thumbnails.default.url); //get url as string
+      console.log(imageURL);
+      return imageURL; 
     });
 
     //fourth, create a streamer object depending on if the channel ID starts with '@' or not.
@@ -225,20 +230,20 @@ function App() {
     //if channel ID starts with @
     if(String(streamerChannelID).indexOf('@') === 0){
       if(streamStatus === 1){ //if currently streaming
-        newStreamer = {id : Math.random(), name : name, streamStatus : "Currently Streaming", link: "https://youtube.com/".concat(streamerChannelID, "/live"), imgLink: imageBlob};
+        newStreamer = {id : Math.random(), name : name, streamStatus : "Currently Streaming", link: "https://youtube.com/".concat(streamerChannelID, "/live"), imgLink: channelImageLink};
       }
       else{ //if not currently streaming
-        newStreamer = {id : Math.random(), name : name, streamStatus : "Not Currently Streaming", link: "https://youtube.com/".concat(streamerChannelID, "/live"), imgLink: imageBlob};
+        newStreamer = {id : Math.random(), name : name, streamStatus : "Not Currently Streaming", link: "https://youtube.com/".concat(streamerChannelID, "/live"), imgLink: channelImageLink};
       }
     }
 
     //else if channel ID doesn't start w/ '@'
     else{
       if(streamStatus === 1){
-        newStreamer = {id : Math.random(), name : name, streamStatus : "Currently Streaming", link: "https://youtube.com/channel/".concat(streamerChannelID, "/live"), imgLink: imageBlob};
+        newStreamer = {id : Math.random(), name : name, streamStatus : "Currently Streaming", link: "https://youtube.com/channel/".concat(streamerChannelID, "/live"), imgLink: channelImageLink};
       }    
       else{
-        newStreamer = {id : Math.random(), name : name, streamStatus : "Not Currently Streaming", link: "https://youtube.com/channel/".concat(streamerChannelID, "/live"), imgLink: imageBlob};
+        newStreamer = {id : Math.random(), name : name, streamStatus : "Not Currently Streaming", link: "https://youtube.com/channel/".concat(streamerChannelID, "/live"), imgLink: channelImageLink};
       }
     }
 
@@ -272,16 +277,16 @@ function App() {
     return jsonObject.items[0].snippet.channelId;
   }
 
-  /* Get YouTube channel's Profile Image (WIP can't GET from API for some reason) */
+  /* Get YouTube channel's Profile Image */
   async function getChannelImage(channelId, apiKey){
-    //fetch img url of channel
-    let channelImage = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=snippet&id+${channelId}&fields=items%2Fsnippet%2Fthumbnails&key=${apiKey}`); 
+    //fetch from API for json data containing image link
+    let channelImage = await fetch(`https://www.googleapis.com/youtube/v3/channels?part=snippet&id=${channelId}&fields=items(id%2Csnippet%2Fthumbnails)&key=${apiKey}`); 
 
-    //convert to binary large object
-    const imageBlob = await channelImage.blob(); 
+    //convert response to json
+    const json = await channelImage.json(); 
 
-    //return imageBlob as promise
-    return imageBlob; 
+    //return json as promise
+    return json; 
   }
 
   /* Get YouTube channel's livestreaming status */
@@ -367,7 +372,7 @@ function App() {
             return(
               <StreamerRow key={item.id}>
                 <StreamerImgDiv>
-                  <StreamerImg src={URL.createObjectURL(item.imgLink)}/>
+                  <StreamerImg src={item.imgLink}/>
                 </StreamerImgDiv>
                 <StreamerName>{item.name}</StreamerName>
                 <StreamerStatus href={item.link} target="_blank">{item.streamStatus}</StreamerStatus>         
