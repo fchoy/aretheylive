@@ -332,10 +332,10 @@ function App() {
             <InstructionsTitle>Instructions for creating your YouTube API Key (PLEASE READ!)</InstructionsTitle>
             <InstructionsSpan>
               <h2 style={{color : "red"}}>If you enter an invalid API Key, please restart the application by refreshing the page.</h2>
-              1. Create a google account if you don't have one at <a href="https://accounts.google.com/signin">the google signin page.</a><br/>
-              2. Login to your google account and go to the <a href="https://console.developers.google.com/">Google Developer's Console.</a><br/>
+              1. Create a google account if you don't have one at <a href="https://accounts.google.com/signin" target="_blank" rel="noreferrer">the google signin page.</a><br/>
+              2. Login to your google account and go to the <a href="https://console.developers.google.com/" target="_blank" rel="noreferrer">Google Developer's Console.</a><br/>
               3. Click on "Create Project". <br/>
-              4. Go to the <a href="https://console.cloud.google.com/">API console</a> and select the project you just created from the top left drop down menu.<br/>
+              4. Go to the <a href="https://console.cloud.google.com/" target="_blank" rel="noreferrer">API console</a> and select the project you just created from the top left drop down menu.<br/>
               5. In the search bar at the top, search for "Youtube Data API v3", visit the page, and then click "enable".<br/>
               6. Next, click on "Credentials" on the left hand menu.<br/>
               7. Click "Create Credentials" and then click on "API Key".<br/>
