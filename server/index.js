@@ -86,10 +86,13 @@ app.put("/streamers/:id", async (req, res) => {
             [id, streamer_name, streamer_status, channel_link, channel_image_link]
         );
 
-        //if a row was created (figure this out)
-
-        //If a row was modified
-        res.json(`Streamer with streamer_id of ${id} was modified.`);
+        //If a row was modified (rowCounter == 1)
+        if(updateStreamer.rowCount == 1){
+            res.json(`Streamer with streamer_id of ${id} was successfully modified.`);
+        }
+        else{
+            res.json(`Row was not updated. Streamer with streamer_id of ${id} was not found in the table.`)
+        }
     }
     catch(err){
         console.error(err);
@@ -116,7 +119,7 @@ app.delete("/streamers/:id", async (req, res) => {
         //rowCount is the number of rows affected by the last SQL statement.
         let rowCount = deleteStreamer.rowCount;
 
-        if(rowCount < 1){
+        if(rowCount == 0){
             res.json("No rows were deleted. The streamer_id does not exist in the database."); //if row was not found
         }
         else{
