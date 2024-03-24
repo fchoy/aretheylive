@@ -47,8 +47,15 @@ function App() {
       //set our new streamer list
       setStreamerList(streamerValues[1]);
 
-      /*Make the POST request to the DB using streamerValues[2];*/
-      postToDB(streamerValues[2]);
+      try{
+        /*Make the POST request to the DB using streamerValues[2];*/
+        const response = await postToDB(streamerValues[2]);
+
+        response.json("Successful POST to DB.")
+      }
+      catch(error){
+        console.log("ERROR : POST to DB not successful.");
+      }
 
       //reset nameInput
       setNameInput('');
