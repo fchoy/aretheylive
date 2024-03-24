@@ -38,32 +38,74 @@ function App() {
 
   //wrapper function for executing createNewStreamer function in our custom hook and setting our state values.
   const handleCreateNewStreamer = async () => {
-    const streamerValues = await createNewStreamer(nameInput, streamerChannelInput, apiKey, streamerCount, streamerList); //returns an array that contains streamerCount and streamerList after running createNewStreamer() and the promise resolves.
+    try{
+      const streamerValues = await createNewStreamer(nameInput, streamerChannelInput, apiKey, streamerCount, streamerList); //returns an array that contains streamerCount and streamerList after running createNewStreamer() and the promise resolves.
     
-    //set our new streamer count 
-    setStreamerCount(streamerValues[0]); 
+      //set our new streamer count
+      setStreamerCount(streamerValues[0]);
 
-    //set our new streamer list
-    setStreamerList(streamerValues[1]);
-      
-    //reset nameInput
-    setNameInput('');
-            
-    //reset streamerChannelInput
-    setStreamerChannelInput('');
+      //set our new streamer list
+      setStreamerList(streamerValues[1]);
+
+      /*Make the POST request to the DB using streamerValues[2];*/
+      postToDB(streamerValues[2]);
+
+      //reset nameInput
+      setNameInput('');
+
+      //reset streamerChannelInput
+      setStreamerChannelInput('');
+    }
+    catch(error){
+      console.log(error);
+    }
   };
+
+  const postToDB = async (streamerObject) => {
+    const formattedStreamerObject = {
+      'streamer_name' : streamerObject.name,
+      'streamer_status' : streamerObject.streamStatus,
+      'channel_link' : streamerObject.link,
+      'channel_image_link' : streamerObject.imgLink,
+    }
+
+    try{
+      const response = await fetch('http://localhost:5000/streamers',
+      {
+        method : "POST",
+        headers : {"Content-Type" : "application/json"},
+        body : JSON.stringify(formattedStreamerObject)
+      });
+
+      console.log(response);
+    }
+    catch(error){
+      console.log(error);
+    }
+  }
 
   //wrapper function for executing deleteRow function from custom hook and setting our state values.
   const handleDeleteRow = (id) => {
-    //sets new streamer list and streamer count from array return from deleteRow function in custom hook
-    const deleteRowValues = deleteRow(id, streamerList, streamerCount);
+    try{
+      //sets new streamer list and streamer count from array return from deleteRow function in custom hook
+      const deleteRowValues = deleteRow(id, streamerList, streamerCount);
 
-    //set new streamer count
-    setStreamerCount(deleteRowValues[0]);
+      //set new streamer count
+      setStreamerCount(deleteRowValues[0]);
 
-    //set new streamer list
-    setStreamerList(deleteRowValues[1]);
+      //set new streamer list
+      setStreamerList(deleteRowValues[1]);
+    }
+    catch(error){
+      console.log(error);
+    }
   };
+
+  const deleteFromDB = async (streamerObject) =>{
+    const formattedStreamerObject = {
+
+    }
+  }
 
   return (
     <Container className={streamerCount < 15 ? "containerDiv" : "containerDivFit"}>

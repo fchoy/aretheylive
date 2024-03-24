@@ -4,7 +4,7 @@ create database StreamerInfo;
 create table streamers(
     streamer_id serial primary key,
     streamer_name varchar(255),
-    streamer_status varchar(8),
+    streamer_status varchar(23),
     channel_link varchar(512),
     channel_image_link varchar(512)
 );
