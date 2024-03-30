@@ -47,16 +47,6 @@ function App() {
       //set our new streamer list
       setStreamerList(streamerValues[1]);
 
-      try{
-        /*Make the POST request to the DB using streamerValues[2];*/
-        const response = await postToDB(streamerValues[2]);
-
-        response.json("Successful POST to DB.")
-      }
-      catch(error){
-        console.log("ERROR : POST to DB not successful.");
-      }
-
       //reset nameInput
       setNameInput('');
 
@@ -68,34 +58,20 @@ function App() {
     }
   };
 
-  const postToDB = async (streamerObject) => {
-    const formattedStreamerObject = {
-      'streamer_name' : streamerObject.name,
-      'streamer_status' : streamerObject.streamStatus,
-      'channel_link' : streamerObject.link,
-      'channel_image_link' : streamerObject.imgLink,
-    }
-
-    try{
-      const response = await fetch('http://localhost:5000/streamers',
-      {
-        method : "POST",
-        headers : {"Content-Type" : "application/json"},
-        body : JSON.stringify(formattedStreamerObject)
-      });
-
-      console.log(response);
-    }
-    catch(error){
-      console.log(error);
-    }
-  }
-
   //wrapper function for executing deleteRow function from custom hook and setting our state values.
-  const handleDeleteRow = (id) => {
+  const handleDeleteRow = async (id) => {
     try{
       //sets new streamer list and streamer count from array return from deleteRow function in custom hook
       const deleteRowValues = deleteRow(id, streamerList, streamerCount);
+      
+      //Remove row from DB
+      try{
+        const response = await deleteFromDB(deleteRowValues[2][0].streamer_id); //pass in DB row id of row we want to delete
+        console.log("Deleted Row : ", response)
+      }
+      catch(error){
+        console.log(error, "Unsuccessful Delete.");
+      }
 
       //set new streamer count
       setStreamerCount(deleteRowValues[0]);
@@ -108,9 +84,17 @@ function App() {
     }
   };
 
-  const deleteFromDB = async (streamerObject) =>{
-    const formattedStreamerObject = {
+  /*Helper function to delete row from DB.*/
+  const deleteFromDB = async (id) => {
+    try{
+      const response = await fetch(`http://localhost:5000/streamers/${id}`, {
+        method : "DELETE"
+      });
 
+      return response.json();
+    }
+    catch(error){
+      console.log("Failed to delete from DB.");
     }
   }
 
