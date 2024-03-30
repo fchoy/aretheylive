@@ -52,6 +52,18 @@
             }
         }
 
+        //Make the POST request to the DB using newStreamer. (We need to do the insert here so that we can add the streamer_id to the newStreamer object before it is placed into our streamerList).
+        try{
+            const response = await postToDB(newStreamer);
+            console.log("Created Row: ", response['Created Streamer']);
+            newStreamer.streamer_id = response['Created Streamer'].streamer_id; //add new field to newStreamer object (Used to keep track of the row id of the object in the DB so we can perform deletes.)
+            console.log("Successful POST to DB.");
+        }
+        catch(error){
+            console.log(error, "Unsuccessful POST to DB");
+        }
+        
+
         /*lastly, update the state of the component*/
         //increment streamer count by 1
         const newStreamerCount = streamerCount + 1;
@@ -59,8 +71,8 @@
         //add to list of streamers
         const newStreamerList = [...streamerList, newStreamer];
 
-        //down here, we should return an array with the streamerCount, the updated streamer list, and the newStreamer object to do DB insert.
-        return [newStreamerCount, newStreamerList, newStreamer];
+        //down here, we should return an array with the streamerCount, and the updated streamer list
+        return [newStreamerCount, newStreamerList];
     };
 
     /* Get YouTube channel's official Channel ID */
@@ -105,6 +117,30 @@
         }
         catch{
             console.log("Something went wrong!");
+        }
+    }
+
+    /*Helper function that performs the Post request to the DB.*/
+    const postToDB = async (streamerObject) => {
+        const formattedStreamerObject = {
+          'streamer_name' : streamerObject.name,
+          'streamer_status' : streamerObject.streamStatus,
+          'channel_link' : streamerObject.link,
+          'channel_image_link' : streamerObject.imgLink,
+        }
+    
+        try{
+          const response = await fetch('http://localhost:5000/streamers',
+          {
+            method : "POST",
+            headers : {"Content-Type" : "application/json"},
+            body : JSON.stringify(formattedStreamerObject)
+          })
+          
+          return response.json(); //get response back from server in JSON ("Created Streamer" object)
+        }
+        catch(error){
+          console.log(error);
         }
     }
 
